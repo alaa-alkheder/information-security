@@ -19,8 +19,15 @@ public class StaticVariable {
     public final static String EDIT_PASSWORD = "edit_password";
     public final static String DELETE_PASSWORD = "delete_password";
     public final static String LOGIN_ACCEPTED = "login_accept";
+    public final static String REGISTER_ACCEPTED = "register_accept";
     public final static String LOGIN_REJECTED = "login_reject";
+    public final static String REGISTER_REJECTED = "register_reject";
 
+    public final static String PASSWORD_ACCEPTED = "password_accept";
+    public final static String PASSWORD_FOUND = "password_found";
+    public final static String PASSWORD_NOTFOUND = "password_notfound";
+    public final static String PASSWORD_DELETED = "password_deleted";
+    public final static String PASSWORD_EDITED = "password_edited";
     //handshaking protocol massage Type
     public final static String REQUEST_PUBLIC_KEY = "req_public_key";
     public final static String SEND_PUBLIC_KEY = "send_public_key";
@@ -31,7 +38,8 @@ public class StaticVariable {
     //    Json Key Name
     public final static String USERNAME = "username";
     public final static String PASSWORD = "password";
-    public final static String ADDRESS = "address";
+    public final static String OLDTITLE = "old_title";
+    public final static String TITLE = "title";
     public final static String EMAIL = "email";
     public final static String DESCRIPTION = "description";
     public final static String ATTACHED_FILE = "attached";

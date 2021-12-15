@@ -3,8 +3,10 @@
 
 import cryptography.AES;
 import cryptography.RSA;
+import netscape.javascript.JSObject;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.JsonObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -29,6 +31,7 @@ import java.util.logging.Logger;
 public class ClientHandler extends Thread {
 
     JSONArray users;
+    JSONArray passwords;
     //Define Socket
     Socket socket;
     DataInputStream in;
@@ -69,6 +72,9 @@ public class ClientHandler extends Thread {
             JSONParser parser = new JSONParser();
             users = (JSONArray) parser.parse(new FileReader("users.json"));
             if(users == null) users = new JSONArray();
+
+            passwords = (JSONArray) parser.parse(new FileReader("passwords.json"));
+            if(passwords == null) passwords = new JSONArray();
         } catch (IOException | NoSuchAlgorithmException | ParseException e) {
             e.printStackTrace();
         }
@@ -171,33 +177,89 @@ public class ClientHandler extends Thread {
     }
 
     //todo delete data from database
-    private void DeletePassword(Message data) throws IOException {
-        JSONObject jo = new JSONObject();
-        // putting data to JSONObject
-        jo.put("msg", "Delete");
-        outp.writeObject(new Message(null, jo.toJSONString()));
+    private void DeletePassword(Message data) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, ParseException {
+        JSONObject object = JsonFunction.decode(AES.decrypt(StaticVariable.ALGORITHM,data.getMessage(),sessionKey,AES.generateIv()));
+
+        JSONObject objtosend = null;
+        for (Object user : passwords) {
+            JSONObject o = (JSONObject) user;
+            System.out.println(o.get("title"));
+            System.out.println(object.get("title"));
+            if (o.get("title").toString().equals(object.get("title").toString()) && o.get("user_id").toString().equals(currentUser)) {
+                objtosend = o;
+            }
+        }
+        if(objtosend != null)
+        {
+            passwords.remove(objtosend);
+            savePasswordInDb();
+            outp.writeObject(new Message(StaticVariable.PASSWORD_DELETED,""));
+        }else{
+            outp.writeObject(new Message(StaticVariable.PASSWORD_NOTFOUND,""));
+        }
 
     }
 
     //todo edit data in database
-    private void EditPassword(Message data) throws IOException {
-        JSONObject jo = new JSONObject();
-        // putting data to JSONObject
-        jo.put("msg", "edit");
-        outp.writeObject(new Message(null, jo.toJSONString()));
+    private void EditPassword(Message data) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, ParseException {
+        JSONObject object = JsonFunction.decode(AES.decrypt(StaticVariable.ALGORITHM,data.getMessage(),sessionKey,AES.generateIv()));
+        JSONObject f = null;
+        for (Object user : passwords) {
+            JSONObject o = (JSONObject) user;
+            System.out.println(o.get("title"));
+            System.out.println(object.get("title"));
+            if (o.get("title").toString().equals(object.get("old_title").toString()) && o.get("user_id").toString().equals(currentUser))
+            {
+                f = o;
+            }
+        }
+        if(f!=null)
+        {
+            passwords.remove(f);
+            f = object;
+            f.put("user_id",currentUser);
+            f.remove("old_title");
+            passwords.add(f);
+            savePasswordInDb();
+            outp.writeObject(new Message(StaticVariable.PASSWORD_EDITED,""));
+        }
+        else{
+            outp.writeObject(new Message(StaticVariable.PASSWORD_NOTFOUND,""));
+        }
     }
 
     //todo dispaly data from database
-    private void DisplayPassword(Message data) throws IOException {
-        JSONObject jo = new JSONObject();
-        // putting data to JSONObject
-        jo.put("msg", "display");
-        outp.writeObject(new Message(null, jo.toJSONString()));
+    private void DisplayPassword(Message data) throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, ParseException {
+        JSONObject object = JsonFunction.decode(AES.decrypt(StaticVariable.ALGORITHM,data.getMessage(),sessionKey,AES.generateIv()));
+
+        JSONObject objtosend = null;
+        for (Object user : passwords) {
+            JSONObject o = (JSONObject) user;
+            System.out.println(o.get("title"));
+            System.out.println(object.get("title"));
+            if (o.get("title").toString().equals(object.get("title").toString()) && o.get("user_id").toString().equals(currentUser)) objtosend = o;
+        }
+
+        if(objtosend != null)
+        {
+            outp.writeObject(new Message(StaticVariable.PASSWORD_FOUND,AES.encrypt(StaticVariable.ALGORITHM,objtosend.toJSONString(),sessionKey,AES.generateIv())));
+        }else{
+            outp.writeObject(new Message(StaticVariable.PASSWORD_NOTFOUND,""));
+        }
+
     }
 
     //todo add data to database
-    private void AddNewPassword(Message data) throws ParseException {
+    private void AddNewPassword(Message data) throws ParseException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IOException {
+        JSONObject object = JsonFunction.decode(AES.decrypt(StaticVariable.ALGORITHM,data.getMessage(),sessionKey,AES.generateIv()));
+        object.put("user_id",currentUser);
 
+        passwords.add(object);
+
+        savePasswordInDb();
+        outp.writeObject(new Message(StaticVariable.PASSWORD_ACCEPTED,""));
+
+        System.out.println("# Registered New Password ");
 
     }
 
@@ -237,8 +299,10 @@ public class ClientHandler extends Thread {
             System.out.println(object);
             users.add(object);
 
-           saveUserInDb();
-            System.out.println("# register new User " + this.currentUser);
+            saveUserInDb();
+            outp.writeObject(new Message(StaticVariable.REGISTER_ACCEPTED,""));
+
+            System.out.println("# registerd new User ");
 //            System.out.println((String) object.get("password"));
         } catch (ParseException e) {
             e.printStackTrace();
@@ -253,6 +317,8 @@ public class ClientHandler extends Thread {
         } catch (BadPaddingException e) {
             e.printStackTrace();
         } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -288,6 +354,24 @@ public class ClientHandler extends Thread {
                 file.close();
             } catch (IOException e) {
                  e.printStackTrace();
+            }
+        }
+    }
+
+    public void savePasswordInDb() {
+        FileWriter file = null;
+        try {
+            // Constructs a FileWriter given a file name, using the platform's default charset
+            file = new FileWriter("passwords.json");
+            file.write(passwords.toJSONString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                file.flush();
+                file.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }

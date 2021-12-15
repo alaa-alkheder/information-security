@@ -3,6 +3,8 @@ import cryptography.AES;
 import cryptography.KeySize;
 import cryptography.RSA;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -17,7 +19,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.Base64;
 import java.util.Scanner;
-
 
 public class Client {
 
@@ -167,6 +168,7 @@ public class Client {
 
     }
     boolean loggedIn = false;
+    boolean isEdit = false;
     void dispalyChoise(){
         System.out.println("----------------------------------------------------------");
         if(!loggedIn)
@@ -175,14 +177,14 @@ public class Client {
             System.out.println("2. Log In");
         }else{
             System.out.println("3. Add New Password");
-            System.out.println("4. Display new Password");
+            System.out.println("4. Display Password");
             System.out.println("5. Edit Password");
             System.out.println("6. Delete Password");
         }
         System.out.print("Your Choice: ");
     }
 
-
+    Scanner in = new Scanner(System.in);
     void sendSessionKey() throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
         IvParameterSpec ivParameterSpec =  AES.generateIv();
         String encodedKey = Base64.getEncoder().encodeToString(client.sessionkey.getEncoded());
@@ -195,7 +197,7 @@ public class Client {
     }
     void doTheWhile() throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException {
         // infinite loop to get the input from the user
-        Scanner in = new Scanner(System.in);
+
 
         int a;
         dispalyChoise();
@@ -204,9 +206,14 @@ public class Client {
             case 1://Sigin IN
             {
                 JSONObject jo = new JSONObject();
+                String username, password;
+                System.out.println("Enter Username: ");
+                username = in.next();
+                System.out.println("Enter Password: ");
+                password = in.next();
                 // putting data to JSONObject
-                jo.put(StaticVariable.USERNAME, "John");
-                jo.put(StaticVariable.PASSWORD, "Smith");
+                jo.put(StaticVariable.USERNAME, username);
+                jo.put(StaticVariable.PASSWORD, password);
                 System.out.println(jo.toJSONString());
                 client.sendMessage(new Message(StaticVariable.SIGNIN, AES.encrypt(StaticVariable.ALGORITHM,jo.toJSONString(),sessionkey,AES.generateIv())));
                 break;
@@ -214,9 +221,14 @@ public class Client {
             case 2://Log IN
             {
                 JSONObject jo = new JSONObject();
+                String username, password;
+                System.out.println("Enter Username: ");
+                username = in.next();
+                System.out.println("Enter Password: ");
+                password = in.next();
                 // putting data to JSONObject
-                jo.put(StaticVariable.USERNAME, "John");
-                jo.put(StaticVariable.PASSWORD, "Smith");
+                jo.put(StaticVariable.USERNAME, username);
+                jo.put(StaticVariable.PASSWORD, password);
                 System.out.println(jo.toJSONString());
                 client.sendMessage(new Message(StaticVariable.LOGIN, AES.encrypt(StaticVariable.ALGORITHM,jo.toJSONString(),sessionkey,AES.generateIv())));
 
@@ -224,20 +236,34 @@ public class Client {
             }
             case 3://Add new Password
             {
+                String title,email,password,description;
+                System.out.println("Enter Title: ");
+                title = in.next();
+                System.out.println("Enter Email: ");
+                email = in.next();
+                System.out.println("Enter Password: ");
+                password = in.next();
+                System.out.println("Enter Description: ");
+                description = in.next();
+
                 JSONObject jo = new JSONObject();
                 // putting data to JSONObject
-                jo.put(StaticVariable.EMAIL, "John");
-                jo.put(StaticVariable.PASSWORD, "Smith");
-                jo.put(StaticVariable.ADDRESS, "address");
-                jo.put(StaticVariable.DESCRIPTION, "Drscription");
+                jo.put(StaticVariable.EMAIL, email);
+                jo.put(StaticVariable.PASSWORD, password);
+                jo.put(StaticVariable.TITLE, title);
+                jo.put(StaticVariable.DESCRIPTION, description);
                 jo.put(StaticVariable.ATTACHED_FILE, "ATTACHED_FILE");
                 System.out.println(jo.toJSONString());
-                client.sendMessage(new Message(StaticVariable.ADD_NEW_PASSWORD, jo.toJSONString()));
+                client.sendMessage(new Message(StaticVariable.ADD_NEW_PASSWORD, AES.encrypt(StaticVariable.ALGORITHM,jo.toJSONString(),sessionkey,AES.generateIv())));
                 break;
             }
             case 4://Display new Password
             {
+                String title;
+                System.out.println("Enter Title: ");
+                title = in.next();
                 JSONObject jo = new JSONObject();
+                jo.put(StaticVariable.TITLE, title);
 //                    // putting data to JSONObject
 //                    jo.put(StaticVariable.EMAIL, "John");
 //                    jo.put(StaticVariable.PASSWORD, "Smith");
@@ -245,33 +271,30 @@ public class Client {
 //                    jo.put(StaticVariable.DESCRIPTION, "Drscription");
 //                    jo.put(StaticVariable.ATTACHED_FILE, "ATTACHED_FILE");
 //                    System.out.println(jo.toJSONString());
-                client.sendMessage(new Message(StaticVariable.DISPLAY_PASSWORD, jo.toJSONString()));
+                client.sendMessage(new Message(StaticVariable.DISPLAY_PASSWORD, AES.encrypt(StaticVariable.ALGORITHM,jo.toJSONString(),sessionkey,AES.generateIv())));
                 break;
             }
             case 5://Edit Password
             {
+                isEdit = true;
+                String title;
+                System.out.println("Enter Title: ");
+                title = in.next();
                 JSONObject jo = new JSONObject();
-                // putting data to JSONObject
-//                    jo.put(StaticVariable.EMAIL, "John");
-//                    jo.put(StaticVariable.PASSWORD, "Smith");
-//                    jo.put(StaticVariable.ADDRESS, "address");
-//                    jo.put(StaticVariable.DESCRIPTION, "Drscription");
-//                    jo.put(StaticVariable.ATTACHED_FILE, "ATTACHED_FILE");
-//                    System.out.println(jo.toJSONString());
-                client.sendMessage(new Message(StaticVariable.EDIT_PASSWORD, jo.toJSONString()));
+                jo.put(StaticVariable.TITLE, title);
+
+                client.sendMessage(new Message(StaticVariable.DISPLAY_PASSWORD, AES.encrypt(StaticVariable.ALGORITHM,jo.toJSONString(),sessionkey,AES.generateIv())));
                 break;
             }
             case 6://Delete Password
             {
+                String title;
+                System.out.println("Enter Title: ");
+                title = in.next();
                 JSONObject jo = new JSONObject();
-                // putting data to JSONObject
-//                    jo.put(StaticVariable.EMAIL, "John");
-//                    jo.put(StaticVariable.PASSWORD, "Smith");
-//                    jo.put(StaticVariable.ADDRESS, "address");
-//                    jo.put(StaticVariable.DESCRIPTION, "Drscription");
-//                    jo.put(StaticVariable.ATTACHED_FILE, "ATTACHED_FILE");
-//                    System.out.println(jo.toJSONString());
-                client.sendMessage(new Message(StaticVariable.DELETE_PASSWORD, jo.toJSONString()));
+                jo.put(StaticVariable.TITLE, title);
+
+                client.sendMessage(new Message(StaticVariable.DELETE_PASSWORD, AES.encrypt(StaticVariable.ALGORITHM,jo.toJSONString(),sessionkey,AES.generateIv())));
                 break;
             }
             case 7://Get server public key
@@ -307,6 +330,7 @@ public class Client {
                     // read the message form the input datastream
                     Message msg = (Message) sInput.readObject();
                     String temp = msg.getType();
+
                     switch (temp) {
                         case StaticVariable.LOGIN: {
 
@@ -326,6 +350,73 @@ public class Client {
                         case StaticVariable.LOGIN_ACCEPTED: {
                             System.out.println("LOGIN ACCEPTED");
                             loggedIn=true;
+                            doTheWhile();
+                            break;
+                        }
+                        case StaticVariable.REGISTER_ACCEPTED: {
+                            System.out.println("REGISTER ACCEPTED");
+                           // loggedIn=true;
+                            doTheWhile();
+                            break;
+                        }
+                        case StaticVariable.PASSWORD_ACCEPTED: {
+                            System.out.println("PASSWORD ACCEPTED");
+                            // loggedIn=true;
+                            doTheWhile();
+                            break;
+                        }
+                        case StaticVariable.PASSWORD_EDITED: {
+                            System.out.println("PASSWORD EDITED");
+                            doTheWhile();
+                            break;
+                        }
+                        case StaticVariable.PASSWORD_FOUND: {
+                            System.out.println("PASSWORD FOUND");
+                            if (isEdit)
+                            {
+                                isEdit = false;
+                                JSONObject object = JsonFunction.decode(AES.decrypt(StaticVariable.ALGORITHM,msg.getMessage(),sessionkey,AES.generateIv()));
+
+                                String title,email,password,description;
+                                System.out.println("Current Title: " + object.get(StaticVariable.TITLE).toString());
+                                System.out.println("Enter Title (Enter * to keep current Title): ");
+                                title = in.next();
+                                System.out.println("Current Email: " + object.get(StaticVariable.EMAIL).toString());
+                                System.out.println("Enter Email (Enter * to keep current Email): ");
+                                email = in.next();
+                                System.out.println("Current Password: " + object.get(StaticVariable.PASSWORD).toString());
+                                System.out.println("Enter Password (Enter * to keep current Password): ");
+                                password = in.next();
+                                System.out.println("Current Description: " + object.get(StaticVariable.DESCRIPTION).toString());
+                                System.out.println("Enter Description (Enter * to keep current Description): ");
+                                description = in.next();
+
+                                JSONObject jo = new JSONObject();
+                                // putting data to JSONObject
+                                jo.put(StaticVariable.EMAIL, email.equals("*")?object.get(StaticVariable.EMAIL).toString():email);
+                                jo.put(StaticVariable.PASSWORD, password.equals("*")?object.get(StaticVariable.PASSWORD).toString():password);
+                                jo.put(StaticVariable.OLDTITLE, object.get(StaticVariable.TITLE).toString());
+                                jo.put(StaticVariable.TITLE, title.equals("*")?object.get(StaticVariable.TITLE).toString():title);
+                                jo.put(StaticVariable.DESCRIPTION, description.equals("*")?object.get(StaticVariable.DESCRIPTION).toString():description);
+                                jo.put(StaticVariable.ATTACHED_FILE, "ATTACHED_FILE");
+                                System.out.println(jo.toJSONString());
+                                client.sendMessage(new Message(StaticVariable.EDIT_PASSWORD, AES.encrypt(StaticVariable.ALGORITHM,jo.toJSONString(),sessionkey,AES.generateIv())));
+
+                            }
+                            else{
+                                JSONObject object = JsonFunction.decode(AES.decrypt(StaticVariable.ALGORITHM,msg.getMessage(),sessionkey,AES.generateIv()));
+                                System.out.println(object.toJSONString());
+                                doTheWhile();
+                            }
+                            break;
+                        }
+                        case StaticVariable.PASSWORD_NOTFOUND: {
+                            System.out.println("PASSWORD NOT FOUND");
+                            doTheWhile();
+                            break;
+                        }
+                        case StaticVariable.PASSWORD_DELETED: {
+                            System.out.println("PASSWORD DELETED");
                             doTheWhile();
                             break;
                         }
@@ -353,9 +444,20 @@ public class Client {
                     e.printStackTrace();
                 } catch (BadPaddingException e) {
                     e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
             }
         }
     }
+}
+class JsonFunction {
+
+    public  static JSONObject decode(String s) throws ParseException {
+
+        return  (JSONObject) new JSONParser().parse(s);
+
+    }
+
 }
 
