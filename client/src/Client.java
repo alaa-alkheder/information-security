@@ -347,10 +347,10 @@ public class Client {
                             doTheWhile();
                             break;
                         }
-                        case StaticVariable.LOGIN_ACCEPTED: {
+                         case StaticVariable.LOGIN_ACCEPTED: {
                             System.out.println("LOGIN ACCEPTED");
                             loggedIn=true;
-                            doTheWhile();
+                                doTheWhile();
                             break;
                         }
                         case StaticVariable.REGISTER_ACCEPTED: {

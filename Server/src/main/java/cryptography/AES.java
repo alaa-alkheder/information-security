@@ -100,14 +100,15 @@ public class AES {
             InvalidAlgorithmParameterException, NoSuchPaddingException, IOException,
             BadPaddingException, ClassNotFoundException, InvalidKeySpecException {
 
-         String input = "soso";
+         String input = "sosoaaaaaaaaaaaa";
         SecretKey key =  generateKey(128);
         IvParameterSpec ivParameterSpec =  generateIv();
         String algorithm = "AES/CBC/PKCS5Padding";
 //        String cipherText =  encrypt(algorithm, input, key,ivParameterSpec);
         String cipherText =  encrypt(algorithm, input, key,ivParameterSpec);
         String plainText = decrypt(algorithm, cipherText, key,ivParameterSpec);
-        System.out.println(plainText);
+        System.out.println(input.length());
+        System.out.println(cipherText.length());
 
 
         String password = "baeldung";

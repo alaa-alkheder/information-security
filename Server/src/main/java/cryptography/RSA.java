@@ -33,6 +33,22 @@ public class RSA {
         String decryptedMessage = new String(decryptedMessageBytes, StandardCharsets.UTF_8);
         return decryptedMessage;
     }
+  public static String e(PrivateKey publicKey, String secretMessage) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Cipher encryptCipher = Cipher.getInstance("RSA");
+        encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        byte[] secretMessageBytes = secretMessage.getBytes(StandardCharsets.UTF_8);
+        byte[] encryptedMessageBytes = encryptCipher.doFinal(secretMessageBytes);
+        return Base64.getEncoder().encodeToString(encryptedMessageBytes);
+    }
+    public static String d(PublicKey privateKey, String secretMessage) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+
+        Cipher decryptCipher = Cipher.getInstance("RSA");
+        decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
+        byte[] encryptedMessageBytes =Base64.getDecoder().decode(secretMessage) ;
+        byte[] decryptedMessageBytes = decryptCipher.doFinal(encryptedMessageBytes);
+        String decryptedMessage = new String(decryptedMessageBytes, StandardCharsets.UTF_8);
+        return decryptedMessage;
+    }
 
 
     public static void main(String[] args) throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchPaddingException {
@@ -42,8 +58,8 @@ public class RSA {
         PrivateKey privateKey = pair.getPrivate();
         PublicKey publicKey = pair.getPublic();
         String secretMessage = "Baeldung secret fofo message";
-        String s=encrypt(publicKey,secretMessage);
-        System.out.println(publicKey);
+        String s=e(privateKey,secretMessage);
+        System.out.println(secretMessage.hashCode());
 
 
     }
